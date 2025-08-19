@@ -1,0 +1,31 @@
+{
+  "name": "temp-server",
+  "version": "1.0.0",
+  "description": "main server temporal",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MagicianGround/temp-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MagicianGround/temp-server/issues"
+  },
+  "homepage": "https://github.com/MagicianGround/temp-server#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "json": "^11.0.0",
+    "mysql2": "^3.14.3",
+    "nodemon": "^3.1.10"
+  }
+}

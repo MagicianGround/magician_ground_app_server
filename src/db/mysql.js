@@ -1,13 +1,16 @@
-const mysql = require('mysql2')
+const mysql = require('mysql2');
 
-// Crear conexión
-const connection = mysql.createConnection({
-  host: process.env.MYSQL_HOST,    // o la IP del servidor MySQL
-  port:process.env.MYSQL_PORT,
-  user: process.env.MYSQL_USERNAME,         // tu usuario de MySQL
+// Crear pool de conexiones
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  port: process.env.MYSQL_PORT,
+  user: process.env.MYSQL_USERNAME,
   password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_NAMEDB
+  database: process.env.MYSQL_NAMEDB,
+  waitForConnections: true,
+  connectionLimit: 10,   // puedes ajustarlo según tu carga
+  queueLimit: 0
 });
 
-
-module.exports = connection;
+// Exportar el pool (con promesas)
+module.exports = pool.promise();

@@ -1,4 +1,4 @@
-const { json } = require("body-parser");
+
 const { response } = require("express");
 
 fetch('http://localhost:8080/user/singup/', {

@@ -2,8 +2,6 @@ require('dotenv').config();
 
 const Express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2')
-
 
 const app = Express();
 
@@ -21,20 +19,17 @@ app.use(cors())
 */
 
 // Crear conexión
-const connection = require('./db/mysql');
+const db = require('./db/mysql');
 
 // Conectar
-connection.connect(err => {
-  if (err) {
+(async () => {
+  try {
+    await db.query('SELECT 1'); // test rápido
+    console.log('Conectado a MySQL ✅');
+  } catch (err) {
     console.error('Error conectando a MySQL:', err);
-    return;
   }
-  console.log('Conectado a MySQL');
-});
-
-// Cerrar conexión (cuando ya no se use)
-connection.end();
-
+})();
 
 // Mongodb
 

@@ -97,7 +97,7 @@ r.post('/login', async (req, res) => {
             {id:user.id, email : user.email },
             process.env.JWT_SECRET,
             {
-                expiresIn: '1h'
+                expiresIn: '24h'
             }
         )
         
@@ -112,6 +112,55 @@ r.post('/login', async (req, res) => {
         res.status(500).json({ message: "Error interno del servidor" });
     }
 
+
+})
+
+r.patch('/change', async (req, res) => {
+  const {
+    token,
+    userId,
+    prop,
+    newprop,
+  } = req.body;
+
+  console.log(token, userId, prop, newprop)
+
+  if (!token || !prop || !newprop || !userId){
+    return res.status(400).json({ message : "Datos Insuficientes"})
+  }
+
+  const allowedProps = ["username", "email", "user_password", "country", "phone_number"];
+  if (!allowedProps.includes(prop)) {
+    return res.status(400).json({ message: "Propiedad no válida" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    const sql = `
+      UPDATE users
+      SET ${prop} = ?
+      WHERE id = ?
+    `;
+
+    let result; // declarar afuera
+
+    if (prop === "user_password") {
+      const nuevaContraseñaEncriptada = await bcrypt.hash(newprop, 10);
+      [result] = await db.query(sql, [nuevaContraseñaEncriptada, userId]);
+    } else {
+      [result] = await db.query(sql, [newprop, userId]);
+    }
+
+    if (result.affectedRows > 0) {
+      return res.json({ message: "Usuario actualizado correctamente" });
+    } else {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+  } catch (err) {
+    return res.status(401).json({message : "Error al cambiar los datos"})
+  }
 
 })
 

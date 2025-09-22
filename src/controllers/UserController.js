@@ -164,4 +164,37 @@ r.patch('/change', async (req, res) => {
 
 })
 
+r.delete('/delete', async (req ,res) => {
+  const {
+    token,
+  } = req.body;
+
+  if (!token){
+    return res.status(400).json({
+      message : "Datos Insuficientes"
+    })
+  }
+
+  try{
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    const userId = decoded.id;
+    
+    const sql = "DELETE FROM users WHERE id = ?";
+
+    const [result] = await db.query(sql, [userId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    return res.json({ message: "Usuario eliminado correctamente" });
+
+  } catch (err){
+    return res.status(401).json({ message: "Token inválido o expirado" });
+  }
+
+})
+
+
 module.exports = r;

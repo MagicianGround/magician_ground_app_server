@@ -14,3 +14,8 @@ main server temporal
         "prop" : "user_password",
         "newprop" : "DINOsaurio2008"
     }
+     - ["username", "email", "user_password", "country", "phone_number"]
+ - Delete --> http://localhost:8080/user/delete
+    {
+        "token" : ""
+    }

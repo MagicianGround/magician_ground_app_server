@@ -201,6 +201,8 @@ r.delete('/delete', async (req ,res) => {
 
 })
 
+// Obtener todos los usuarios (sin passwords)
+
 r.get('/all', async (req, res) => {
   try {
     const [rows] = await db.query("SELECT id, username, email, country, phone_number FROM users");
@@ -211,18 +213,26 @@ r.get('/all', async (req, res) => {
   }
 });
 
-r.get('id/:id', async (req, res) => {
-  const { id } = req.params;
+// Obtener un usuario por ID (sin password)
+
+r.get('/:id', async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT id, username, email, country, phone_number FROM users WHERE id = ?", [id]);
+    const { id } = req.params;
+    const [rows] = await db.query(
+      "SELECT id, username, email, country, phone_number FROM users WHERE id = ?",
+      [id]
+    );
+
     if (rows.length === 0) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-    res.json(rows[0]);
+
+    res.json(rows[0]); // devuelve solo un usuario
   } catch (err) {
     console.error("Error al obtener usuario:", err);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
+
 
 module.exports = r;

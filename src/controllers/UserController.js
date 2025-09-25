@@ -63,7 +63,7 @@ r.post('/signup', async (req, res) => {
   }
 });
 
-// Inicio de secion
+// Inicio de sesion
 r.post('/login', async (req, res) => {
     const {
         email,
@@ -115,6 +115,9 @@ r.post('/login', async (req, res) => {
 
 })
 
+
+// Cambiar contraseña
+
 r.patch('/change', async (req, res) => {
   const {
     token,
@@ -164,6 +167,8 @@ r.patch('/change', async (req, res) => {
 
 })
 
+// Eliminar usuario
+
 r.delete('/delete', async (req ,res) => {
   const {
     token,
@@ -196,5 +201,28 @@ r.delete('/delete', async (req ,res) => {
 
 })
 
+r.get('/all', async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT id, username, email, country, phone_number FROM users");
+    res.json(rows);
+  } catch (err) {
+    console.error("Error al obtener usuarios:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+r.get('id/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.query("SELECT id, username, email, country, phone_number FROM users WHERE id = ?", [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("Error al obtener usuario:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
 
 module.exports = r;

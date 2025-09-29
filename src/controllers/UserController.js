@@ -215,15 +215,21 @@ r.get('/all', async (req, res) => {
 
 // Obtener un usuario por ID (sin password)
 
-r.get('/:id', async (req, res) => {
+r.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Validar que el ID sea un número
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "ID inválido" });
+    }
+
     const [rows] = await db.query(
       "SELECT id, username, email, country, phone_number FROM users WHERE id = ?",
       [id]
     );
 
-    if (rows.length === 0) {
+    if (!rows || rows.length === 0) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 

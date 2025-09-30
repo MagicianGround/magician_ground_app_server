@@ -7,7 +7,7 @@ r.get("/temperatura", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
     const [rows] = await db.query(
-      "SELECT device_id, sensor, variable, unidad, seq, tiempo_estimado FROM simulated_measurements ORDER BY tiempo_estimado DESC LIMIT ?",
+      "SELECT device_id, sensor, variable, seq, tiempo_estimado FROM simulated_measurements ORDER BY tiempo_estimado DESC LIMIT ?",
       [limit]
     );
     res.json(rows);

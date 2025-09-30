@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const db = require('../db/mysql'); // pool de mysql.js
+const { sendRecoveryEmail } = require("../utils/mailer");
+
 
 const r = express.Router();
 
@@ -115,58 +117,6 @@ r.post('/login', async (req, res) => {
 
 })
 
-
-// Cambiar contraseña
-
-r.patch('/change', async (req, res) => {
-  const {
-    token,
-    userId,
-    prop,
-    newprop,
-  } = req.body;
-
-  console.log(token, userId, prop, newprop)
-
-  if (!token || !prop || !newprop || !userId){
-    return res.status(400).json({ message : "Datos Insuficientes"})
-  }
-
-  const allowedProps = ["username", "email", "user_password", "country", "phone_number"];
-  if (!allowedProps.includes(prop)) {
-    return res.status(400).json({ message: "Propiedad no válida" });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-
-    const sql = `
-      UPDATE users
-      SET ${prop} = ?
-      WHERE id = ?
-    `;
-
-    let result; // declarar afuera
-
-    if (prop === "user_password") {
-      const nuevaContraseñaEncriptada = await bcrypt.hash(newprop, 10);
-      [result] = await db.query(sql, [nuevaContraseñaEncriptada, userId]);
-    } else {
-      [result] = await db.query(sql, [newprop, userId]);
-    }
-
-    if (result.affectedRows > 0) {
-      return res.json({ message: "Usuario actualizado correctamente" });
-    } else {
-      return res.status(404).json({ message: "Usuario no encontrado" });
-    }
-
-  } catch (err) {
-    return res.status(401).json({message : "Error al cambiar los datos"})
-  }
-
-})
-
 // Eliminar usuario
 
 r.delete('/delete', async (req ,res) => {
@@ -240,6 +190,77 @@ r.get("/:id", async (req, res) => {
   }
 });
 
+r.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email requerido" });
+  }
+
+  try {
+    // Buscar usuario
+    const [rows] = await db.query("SELECT id FROM users WHERE email = ?", [email]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const userId = rows[0].id;
+
+    // Generar recoveryKey
+    const recoveryKey = await bcrypt.hash(Date.now().toString(), 10);
+
+    // Guardar en DB
+    await db.query(
+      "INSERT INTO recovery_keys (user_id, recovery_key) VALUES (?, ?)",
+      [userId, recoveryKey]
+    );
+
+    // 📧 Enviar email con el link
+    await sendRecoveryEmail(email, recoveryKey);
+
+    return res.json({ message: "Correo de recuperación enviado" });
+  } catch (err) {
+    console.error("Error en forgot-password:", err);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// --- Reset password with recovery key ---
+r.post('/reset-password', async (req, res) => {
+  const { recoveryKey, newPassword } = req.body;
+
+  if (!recoveryKey || !newPassword) {
+    return res.status(400).json({ message: "Datos insuficientes" });
+  }
+
+  try {
+    // Validate recovery key
+    const [rows] = await db.query(
+      "SELECT user_id FROM recovery_keys WHERE recovery_key = ? LIMIT 1",
+      [recoveryKey]
+    );
+
+    if (rows.length === 0) {
+      return res.status(400).json({ message: "Clave de recuperación inválida o expirada" });
+    }
+
+    const userId = rows[0].user_id;
+
+    // 🔒 Hash new password with bcrypt
+    const newHash = await bcrypt.hash(newPassword, 10);
+
+    // Update user password
+    await db.query("UPDATE users SET user_password = ? WHERE id = ?", [newHash, userId]);
+
+    // Remove recovery key after use
+    await db.query("DELETE FROM recovery_keys WHERE recovery_key = ?", [recoveryKey]);
+
+    return res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (err) {
+    console.error("Error en reset-password:", err);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
 
 
 

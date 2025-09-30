@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const db = require('../db/mysql'); // importamos el pool de mysql.js
+const db = require('../db/mysql'); // pool de mysql.js
 
 const r = express.Router();
 
@@ -239,6 +239,8 @@ r.get("/:id", async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
+
+
 
 
 module.exports = r;

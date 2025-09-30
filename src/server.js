@@ -6,8 +6,9 @@ const cors = require('cors');
 const app = Express();
 
 const UserController = require('./controllers/UserController') 
+const MeasurementController = require('./controllers/MeasurementController')
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8080;
 
 app.use(Express.json())
 app.use(cors())
@@ -48,10 +49,10 @@ const db = require('./db/mysql');
 */
 
 app.use('/user', UserController)
-
+app.use('/measurements', MeasurementController)
 
 app.listen(PORT, () => {
-    console.log("App running in 8080")
+    console.log("App running in port:", PORT);
 })
 
 
